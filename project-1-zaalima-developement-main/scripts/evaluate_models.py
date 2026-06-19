@@ -1,4 +1,4 @@
-#Import Metrics
+# Import Metrics
 from sklearn.metrics import (
     accuracy_score,
     precision_score,
@@ -7,7 +7,7 @@ from sklearn.metrics import (
     roc_auc_score
 )
 ________________________________________
-#Evaluation Function
+# Evaluation Function
 def evaluate(y_true, y_pred, y_prob):
     print("Accuracy:",
           accuracy_score(y_true,y_pred))
