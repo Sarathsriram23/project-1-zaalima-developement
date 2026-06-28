@@ -1,4 +1,8 @@
+<<<<<<< HEAD
+#Import Metrics
+=======
 # Import Metrics
+>>>>>>> 8cfaf524b409ceba89eedf99ff41032df670dd66
 from sklearn.metrics import (
     accuracy_score,
     precision_score,
@@ -6,8 +10,12 @@ from sklearn.metrics import (
     f1_score,
     roc_auc_score
 )
+<<<<<<< HEAD
+#Evaluation Function
+=======
 ________________________________________
 # Evaluation Function
+>>>>>>> 8cfaf524b409ceba89eedf99ff41032df670dd66
 def evaluate(y_true, y_pred, y_prob):
     print("Accuracy:",
           accuracy_score(y_true,y_pred))
@@ -24,6 +32,8 @@ def evaluate(y_true, y_pred, y_prob):
     print("ROC AUC:",
           roc_auc_score(y_true,y_prob))
 
+<<<<<<< HEAD
+=======
           
 
 import matplotlib.pyplot as plt
@@ -44,6 +54,7 @@ plt.show()
 
 # Percentage
 print(df['Churn'].value_counts(normalize=True) * 100)
+<<<<<<< HEAD
 
 #Checking for missing values
 print(df.isnull().sum())
@@ -109,3 +120,6 @@ plt.title('Churn Rate by Payment Method')
 plt.xlabel('Payment Method')
 plt.ylabel('Churn Rate')
 plt.show()
+=======
+>>>>>>> 8cfaf524b409ceba89eedf99ff41032df670dd66
+>>>>>>> 03ccc8918f508c0760e12bbffaa632fd0ea45201
