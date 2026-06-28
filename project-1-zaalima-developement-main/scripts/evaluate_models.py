@@ -102,3 +102,10 @@ plt.xlabel('Contract Type')
 plt.ylabel('Churn Rate')
 plt.show()
 
+
+plt.figure(figsize=(6,4))
+sns.barplot(x='PaymentMethod', y='Churn', data=df, estimator=lambda x: sum(x==1)/len(x))
+plt.title('Churn Rate by Payment Method')
+plt.xlabel('Payment Method')
+plt.ylabel('Churn Rate')
+plt.show()
