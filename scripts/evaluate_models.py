@@ -1,4 +1,6 @@
+
 # Model Evaluation Metrics and Scoring Utilities
+#Import Metrics
 from sklearn.metrics import (
     accuracy_score,
     precision_score,
@@ -40,3 +42,23 @@ def get_detailed_report(y_true, y_pred):
     cm = confusion_matrix(y_true, y_pred)
     cr = classification_report(y_true, y_pred)
     return cm, cr
+=======
+    roc_auc_score
+)
+#Evaluation Function
+def evaluate(y_true, y_pred, y_prob):
+    print("Accuracy:",
+          accuracy_score(y_true,y_pred))
+
+    print("Precision:",
+          precision_score(y_true,y_pred))
+
+    print("Recall:",
+          recall_score(y_true,y_pred))
+
+    print("F1:",
+          f1_score(y_true,y_pred))
+
+    print("ROC AUC:",
+          roc_auc_score(y_true,y_prob))
+
