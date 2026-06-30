@@ -1,11 +1,10 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
 import os
 
 # Set style for visualizations
-sns.set_style("whitegrid")
+plt.style.use('seaborn-v0_8-whitegrid')
 plt.rcParams["figure.figsize"] = (10, 6)
 plt.rcParams["font.size"] = 12
 
@@ -15,64 +14,75 @@ df = pd.read_csv('data/cleaned_telco.csv')
 
 # 1. Churn Distribution
 plt.figure(figsize=(6, 5))
-sns.countplot(x='Churn', data=df, palette='viridis')
-plt.title('Distribution of Customer Churn')
-plt.xlabel('Churn (0 = No, 1 = Yes)')
+counts = df['Churn'].value_counts()
+plt.bar(['Retained (No)', 'Churned (Yes)'], counts, color=['#2b6cb0', '#e53e3e'], width=0.6)
+plt.title('Distribution of Customer Churn', fontsize=14, pad=15)
 plt.ylabel('Count')
-plt.xticks([0, 1], ['Retained (No)', 'Churned (Yes)'])
+plt.grid(axis='y', linestyle='--', alpha=0.7)
 plt.tight_layout()
-plt.savefig('reports/churn_distribution.png')
+plt.savefig('reports/churn_distribution.png', dpi=300)
 plt.close()
 
 # 2. Key Numeric Features
 plt.figure(figsize=(12, 5))
 plt.subplot(1, 2, 1)
-sns.histplot(df['MonthlyCharges'], bins=30, kde=True, color='skyblue')
-plt.title('Monthly Charges Distribution')
+plt.hist(df['MonthlyCharges'], bins=30, color='skyblue', edgecolor='white', alpha=0.8)
+plt.title('Monthly Charges Distribution', fontsize=12)
 plt.xlabel('Monthly Charges ($)')
+plt.ylabel('Frequency')
+plt.grid(axis='y', linestyle='--', alpha=0.7)
 
 plt.subplot(1, 2, 2)
-sns.histplot(df['tenure'], bins=30, kde=True, color='salmon')
-plt.title('Tenure Distribution')
+plt.hist(df['tenure'], bins=30, color='salmon', edgecolor='white', alpha=0.8)
+plt.title('Tenure Distribution', fontsize=12)
 plt.xlabel('Tenure (Months)')
+plt.ylabel('Frequency')
+plt.grid(axis='y', linestyle='--', alpha=0.7)
 
 plt.tight_layout()
-plt.savefig('reports/numeric_distributions.png')
+plt.savefig('reports/numeric_distributions.png', dpi=300)
 plt.close()
 
 # 3. Contract vs Churn
-contract_churn = df.groupby('Contract')['Churn'].mean().reset_index()
-contract_churn['Churn'] = contract_churn['Churn'] * 100
+contract_churn = df.groupby('Contract')['Churn'].mean() * 100
 plt.figure(figsize=(8, 5))
-sns.barplot(x='Contract', y='Churn', data=contract_churn, palette='coolwarm')
-plt.title('Churn Rate by Contract Type')
+plt.bar(contract_churn.index, contract_churn.values, color=['#319795', '#dd6b20', '#e53e3e'], width=0.5)
+plt.title('Churn Rate by Contract Type', fontsize=14, pad=15)
 plt.xlabel('Contract Type')
 plt.ylabel('Churn Rate (%)')
+plt.grid(axis='y', linestyle='--', alpha=0.7)
 plt.tight_layout()
-plt.savefig('reports/contract_vs_churn.png')
+plt.savefig('reports/contract_vs_churn.png', dpi=300)
 plt.close()
 
 # 4. Payment Method vs Churn
-pm_churn = df.groupby('PaymentMethod')['Churn'].mean().reset_index()
-pm_churn['Churn'] = pm_churn['Churn'] * 100
-pm_churn = pm_churn.sort_values(by='Churn', ascending=False)
+pm_churn = df.groupby('PaymentMethod')['Churn'].mean().sort_values(ascending=True) * 100
 plt.figure(figsize=(10, 5))
-sns.barplot(x='Churn', y='PaymentMethod', data=pm_churn, palette='magma')
-plt.title('Churn Rate by Payment Method')
+plt.barh(pm_churn.index, pm_churn.values, color='#805ad5', height=0.5)
+plt.title('Churn Rate by Payment Method', fontsize=14, pad=15)
 plt.xlabel('Churn Rate (%)')
 plt.ylabel('Payment Method')
+plt.grid(axis='x', linestyle='--', alpha=0.7)
 plt.tight_layout()
-plt.savefig('reports/payment_vs_churn.png')
+plt.savefig('reports/payment_vs_churn.png', dpi=300)
 plt.close()
 
 # 5. Correlation Heatmap
 numeric_df = df.select_dtypes(include=[np.number])
 corr = numeric_df.corr()
 plt.figure(figsize=(8, 6))
-sns.heatmap(corr, annot=True, cmap='coolwarm', fmt='.2f', vmin=-1, vmax=1)
-plt.title('Correlation Matrix of Numeric Features')
+cax = plt.imshow(corr, cmap='coolwarm', vmin=-1, vmax=1)
+plt.colorbar(cax)
+ticks = np.arange(len(corr.columns))
+plt.xticks(ticks, corr.columns, rotation=45, ha='right')
+plt.yticks(ticks, corr.columns)
+# Annotate values
+for i in range(len(corr.columns)):
+    for j in range(len(corr.columns)):
+        plt.text(j, i, f"{corr.iloc[i, j]:.2f}", ha='center', va='center', color='black')
+plt.title('Correlation Matrix of Numeric Features', fontsize=14, pad=15)
 plt.tight_layout()
-plt.savefig('reports/correlation_matrix.png')
+plt.savefig('reports/correlation_matrix.png', dpi=300)
 plt.close()
 
-print("All EDA plots generated successfully in reports/ directory.")
+print("All EDA plots generated successfully using Matplotlib.")

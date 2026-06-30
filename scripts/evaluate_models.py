@@ -42,9 +42,7 @@ def get_detailed_report(y_true, y_pred):
     cm = confusion_matrix(y_true, y_pred)
     cr = classification_report(y_true, y_pred)
     return cm, cr
-=======
-    roc_auc_score
-)
+ 
 #Evaluation Function
 def evaluate(y_true, y_pred, y_prob):
     print("Accuracy:",
