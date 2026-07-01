@@ -120,6 +120,12 @@ plt.title('Churn Rate by Payment Method')
 plt.xlabel('Payment Method')
 plt.ylabel('Churn Rate')
 plt.show()
-=======
->>>>>>> 8cfaf524b409ceba89eedf99ff41032df670dd66
->>>>>>> 03ccc8918f508c0760e12bbffaa632fd0ea45201
+
+
+plt.figure(figsize=(6,4))
+sns.barplot(x='InternetService', y='Churn', data=df, estimator=lambda x: sum(x)/len(x))         
+plt.title('Churn Rate by Internet Service')  
+plt.xlabel('Internet Service')
+plt.ylabel('Churn Rate')
+plt.show()
+
