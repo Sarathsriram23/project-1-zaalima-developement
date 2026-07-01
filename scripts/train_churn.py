@@ -1,0 +1,127 @@
+# Train and Evaluate Churn Prediction Models
+import pandas as pd
+import numpy as np
+import os
+import joblib
+
+from sklearn.model_selection import train_test_split
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from xgboost import XGBClassifier
+
+from evaluate_models import evaluate, get_detailed_report
+
+def train_models():
+    # 1. Load data
+    data_path = "data/cleaned_telco.csv"
+    if not os.path.exists(data_path):
+        print(f"Cleaned dataset not found at: {data_path}")
+        return
+        
+    print(f"Loading cleaned dataset: {data_path}")
+    df = pd.read_csv(data_path)
+    
+    # 2. Add Feature Engineering (AvgChargePerMonth) as described in inner script
+    print("Performing feature engineering...")
+    df["AvgChargePerMonth"] = df["TotalCharges"] / (df["tenure"] + 1)
+    
+    # 3. Separate features and target
+    X = df.drop("Churn", axis=1)
+    y = df["Churn"]
+    
+    # 4. Identify categorical and numeric columns
+    categorical_cols = X.select_dtypes(include="object").columns.tolist()
+    numeric_cols = X.select_dtypes(exclude="object").columns.tolist()
+    
+    print(f"Categorical features ({len(categorical_cols)}): {categorical_cols}")
+    print(f"Numeric features ({len(numeric_cols)}): {numeric_cols}")
+    
+    # 5. Define ColumnTransformer for preprocessing
+    preprocessor = ColumnTransformer(
+        transformers=[
+            ("cat", OneHotEncoder(handle_unknown="ignore", drop="first"), categorical_cols),
+            ("num", StandardScaler(), numeric_cols)
+        ]
+    )
+    
+    # 6. Train-test split (80/20, stratified)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
+    )
+    print(f"Train set size: {X_train.shape[0]}, Test set size: {X_test.shape[0]}")
+    
+    # 7. Initialize models
+    models = {
+        "Logistic Regression": LogisticRegression(max_iter=1000, random_state=42),
+        "Random Forest": RandomForestClassifier(n_estimators=100, random_state=42, class_weight="balanced"),
+        "XGBoost": XGBClassifier(eval_metric="logloss", random_state=42, use_label_encoder=False)
+    }
+    
+    # 8. Train and evaluate
+    results = {}
+    best_f1 = 0
+    best_model_name = ""
+    best_pipeline = None
+    
+    os.makedirs("models", exist_ok=True)
+    
+    for name, model in models.items():
+        print(f"\n================ Training {name} ================")
+        pipeline = Pipeline(steps=[
+            ("preprocessor", preprocessor),
+            ("classifier", model)
+        ])
+        
+        # Fit pipeline
+        pipeline.fit(X_train, y_train)
+        
+        # Predict
+        y_pred = pipeline.predict(X_test)
+        y_prob = pipeline.predict_proba(X_test)[:, 1]
+        
+        # Score
+        metrics = evaluate(y_test, y_pred, y_prob)
+        results[name] = metrics
+        
+        # Save each model pipeline
+        model_filename = f"models/{name.lower().replace(' ', '_')}.pkl"
+        joblib.dump(pipeline, model_filename)
+        print(f"Saved {name} model pipeline to {model_filename}")
+        
+        # Track the best model based on F1 Score
+        if metrics["F1 Score"] > best_f1:
+            best_f1 = metrics["F1 Score"]
+            best_model_name = name
+            best_pipeline = pipeline
+            
+    # 9. Print comparison summary
+    print("\n================ Model Comparison Summary ================")
+    summary_df = pd.DataFrame(results).T
+    print(summary_df)
+    
+    print(f"\nBest Model: {best_model_name} with F1-Score: {best_f1:.4f}")
+    
+    # Save best model to standard location
+    joblib.dump(best_pipeline, "models/churn_model.pkl")
+    print("Saved best model pipeline to models/churn_model.pkl")
+    
+    # 10. Generate dashboard predictions file using best model (Member 5 Deliverable)
+    print("\nGenerating churn predictions for dashboard dataset...")
+    best_pred = best_pipeline.predict(X_test)
+    best_prob = best_pipeline.predict_proba(X_test)[:, 1]
+    
+    # Combine original test features with actual, predicted, and probability columns
+    predictions_df = X_test.copy()
+    predictions_df["ActualChurn"] = y_test
+    predictions_df["PredictedChurn"] = best_pred
+    predictions_df["ChurnProbability"] = best_prob
+    
+    predictions_path = "data/churn_predictions.csv"
+    predictions_df.to_csv(predictions_path, index=False)
+    print(f"Predictions saved to {predictions_path}. Shape: {predictions_df.shape}")
+    
+if __name__ == "__main__":
+    train_models()
