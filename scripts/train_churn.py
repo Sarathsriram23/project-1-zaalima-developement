@@ -12,7 +12,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 
-from evaluate_models import evaluate, get_detailed_report
+from evaluate_models import evaluate
+from custom_transformers import FeatureEngineer
 
 def train_models():
     # 1. Load data
@@ -24,22 +25,19 @@ def train_models():
     print(f"Loading cleaned dataset: {data_path}")
     df = pd.read_csv(data_path)
     
-    # 2. Add Feature Engineering (AvgChargePerMonth) as described in inner script
-    print("Performing feature engineering...")
-    df["AvgChargePerMonth"] = df["TotalCharges"] / (df["tenure"] + 1)
-    
-    # 3. Separate features and target
+    # 2. Separate features and target (No manual feature engineering here!)
     X = df.drop("Churn", axis=1)
     y = df["Churn"]
     
-    # 4. Identify categorical and numeric columns
+    # 3. Identify categorical and numeric columns
     categorical_cols = X.select_dtypes(include="object").columns.tolist()
-    numeric_cols = X.select_dtypes(exclude="object").columns.tolist()
+    # Add engineered column to numeric_cols so the ColumnTransformer scales it
+    numeric_cols = X.select_dtypes(exclude="object").columns.tolist() + ["AvgChargePerMonth"]
     
     print(f"Categorical features ({len(categorical_cols)}): {categorical_cols}")
     print(f"Numeric features ({len(numeric_cols)}): {numeric_cols}")
     
-    # 5. Define ColumnTransformer for preprocessing
+    # 4. Define ColumnTransformer for preprocessing
     preprocessor = ColumnTransformer(
         transformers=[
             ("cat", OneHotEncoder(handle_unknown="ignore", drop="first"), categorical_cols),
@@ -47,20 +45,20 @@ def train_models():
         ]
     )
     
-    # 6. Train-test split (80/20, stratified)
+    # 5. Train-test split (80/20, stratified)
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42, stratify=y
     )
     print(f"Train set size: {X_train.shape[0]}, Test set size: {X_test.shape[0]}")
     
-    # 7. Initialize models
+    # 6. Initialize models
     models = {
         "Logistic Regression": LogisticRegression(max_iter=1000, random_state=42),
         "Random Forest": RandomForestClassifier(n_estimators=100, random_state=42, class_weight="balanced"),
         "XGBoost": XGBClassifier(eval_metric="logloss", random_state=42, use_label_encoder=False)
     }
     
-    # 8. Train and evaluate
+    # 7. Train and evaluate
     results = {}
     best_f1 = 0
     best_model_name = ""
@@ -70,12 +68,14 @@ def train_models():
     
     for name, model in models.items():
         print(f"\n================ Training {name} ================")
+        # Pipeline now contains FeatureEngineer() as step 1
         pipeline = Pipeline(steps=[
+            ("feature_engineering", FeatureEngineer()),
             ("preprocessor", preprocessor),
             ("classifier", model)
         ])
         
-        # Fit pipeline
+        # Fit pipeline (implicitly transforms X_train using FeatureEngineer, then preprocessor, then fits model)
         pipeline.fit(X_train, y_train)
         
         # Predict
@@ -97,7 +97,7 @@ def train_models():
             best_model_name = name
             best_pipeline = pipeline
             
-    # 9. Print comparison summary
+    # 8. Print comparison summary
     print("\n================ Model Comparison Summary ================")
     summary_df = pd.DataFrame(results).T
     print(summary_df)
@@ -108,7 +108,7 @@ def train_models():
     joblib.dump(best_pipeline, "models/churn_model.pkl")
     print("Saved best model pipeline to models/churn_model.pkl")
     
-    # 10. Generate dashboard predictions file using best model (Member 5 Deliverable)
+    # 9. Generate dashboard predictions file using best model (Member 5 Deliverable)
     print("\nGenerating churn predictions for dashboard dataset...")
     best_pred = best_pipeline.predict(X_test)
     best_prob = best_pipeline.predict_proba(X_test)[:, 1]

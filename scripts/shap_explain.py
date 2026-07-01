@@ -5,6 +5,9 @@ import os
 import joblib
 import matplotlib.pyplot as plt
 import shap
+from sklearn.pipeline import Pipeline
+# Make sure to import FeatureEngineer so it can be unpickled properly
+from custom_transformers import FeatureEngineer
 
 def explain_model():
     model_path = "models/churn_model.pkl"
@@ -20,23 +23,24 @@ def explain_model():
     print(f"Loading cleaned dataset: {data_path}")
     df = pd.read_csv(data_path)
     
-    # Pre-process inputs (add engineered feature)
-    df["AvgChargePerMonth"] = df["TotalCharges"] / (df["tenure"] + 1)
-    
+    # Separate features (no manual feature engineering needed!)
     X = df.drop("Churn", axis=1)
     
-    # Split features
+    # Identify initial categorical columns
     categorical_cols = X.select_dtypes(include="object").columns.tolist()
-    numeric_cols = X.select_dtypes(exclude="object").columns.tolist()
     
-    # Preprocess feature matrix
+    # Reconstruct the preprocessing pipeline (all steps except the classifier)
+    # This runs FeatureEngineer followed by the preprocessor ColumnTransformer
+    preprocessor_pipeline = Pipeline(pipeline.steps[:-1])
+    X_processed = preprocessor_pipeline.transform(X)
+    
+    # Extract feature names after encoding from the ColumnTransformer step
     preprocessor = pipeline.named_steps["preprocessor"]
-    X_processed = preprocessor.transform(X)
-    
-    # Extract feature names after encoding
     cat_encoder = preprocessor.named_transformers_["cat"]
     cat_features = cat_encoder.get_feature_names_out(categorical_cols).tolist()
-    all_feature_names = cat_features + numeric_cols
+    # Programmatically retrieve the scaled numerical columns
+    numeric_features = preprocessor.transformers[1][2]
+    all_feature_names = cat_features + numeric_features
     
     # Create DataFrame of processed features for SHAP explainer
     X_processed_df = pd.DataFrame(X_processed, columns=all_feature_names)
@@ -47,16 +51,8 @@ def explain_model():
     print("Calculating SHAP values...")
     # Initialize explainer appropriate for the model
     # For Logistic Regression, we use LinearExplainer
-    if isinstance(classifier, (shap.explainers._linear.LinearExplainer, type(None))):
-        # Fallback to general Explainer
-        explainer = shap.Explainer(classifier, X_processed)
-        shap_values = explainer(X_processed)
-    else:
-        # Use general Explainer for Logistic Regression/XGBoost/RandomForest
-        # We can pass the predict/predict_proba function or use the model coefficients directly
-        # For linear models, shap.Explainer supports them directly
-        explainer = shap.Explainer(classifier, X_processed)
-        shap_values = explainer(X_processed)
+    explainer = shap.Explainer(classifier, X_processed)
+    shap_values = explainer(X_processed)
         
     print(f"SHAP values computed. Shape: {shap_values.shape}")
     
@@ -65,7 +61,6 @@ def explain_model():
     plt.figure(figsize=(10, 6))
     
     # Create a SHAP summary plot and save it
-    # We pass the shap_values array and features
     shap.summary_plot(shap_values, X_processed_df, show=False)
     
     plt.title("SHAP Feature Importance (Customer Churn Model)", fontsize=14, pad=15)
