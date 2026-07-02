@@ -13,7 +13,6 @@ from sklearn.metrics import (
 <<<<<<< HEAD
 #Evaluation Function
 =======
-________________________________________
 # Evaluation Function
 >>>>>>> 8cfaf524b409ceba89eedf99ff41032df670dd66
 def evaluate(y_true, y_pred, y_prob):
@@ -54,7 +53,6 @@ plt.show()
 
 # Percentage
 print(df['Churn'].value_counts(normalize=True) * 100)
-<<<<<<< HEAD
 
 #Checking for missing values
 print(df.isnull().sum())
@@ -74,7 +72,7 @@ contract_counts = df['Contract'].value_counts()
 print("Contract Distribution:")
 print(contract_counts)  
 
-#Monhly charges distribution
+#Monthly charges distribution
 plt.figure(figsize=(6,4))
 sns.histplot(df['MonthlyCharges'], bins=30, kde=True)
 plt.title('Monthly Charges Distribution')
@@ -113,15 +111,7 @@ plt.xlabel('Contract Type')
 plt.ylabel('Churn Rate')
 plt.show()
 
-
-plt.figure(figsize=(6,4))
-sns.barplot(x='PaymentMethod', y='Churn', data=df, estimator=lambda x: sum(x==1)/len(x))
-plt.title('Churn Rate by Payment Method')
-plt.xlabel('Payment Method')
-plt.ylabel('Churn Rate')
-plt.show()
-
-
+#internet service vs churn
 plt.figure(figsize=(6,4))
 sns.barplot(x='InternetService', y='Churn', data=df, estimator=lambda x: sum(x)/len(x))         
 plt.title('Churn Rate by Internet Service')  
@@ -129,3 +119,26 @@ plt.xlabel('Internet Service')
 plt.ylabel('Churn Rate')
 plt.show()
 
+#gender vs churn
+plt.figure(figsize=(5,4))
+sns.barplot(x='gender', y='Churn', data=df, estimator=lambda x: sum(x)/len(x))
+plt.title('Churn Rate by Gender')
+plt.xlabel('Gender')
+plt.ylabel('Churn Rate')
+plt.show()
+
+#Senior Citizen vs churn
+plt.figure(figsize=(5,4))
+sns.barplot(x='SeniorCitizen', y='Churn', data=df, estimator=lambda x: sum(x)/len(x))
+plt.title('Churn Rate by Senior Citizen Status')
+plt.xlabel('Senior Citizen')
+plt.ylabel('Churn Rate')      
+plt.show()
+
+#Partner vs churn
+plt.figure(figsize=(5,4))
+sns.barplot(x='Partner', y='Churn', data=df, estimator=lambda x: sum(x)/len(x))
+plt.title('Churn Rate by Partner Status')
+plt.xlabel('Partner')
+plt.ylabel('Churn Rate')
+plt.show()
