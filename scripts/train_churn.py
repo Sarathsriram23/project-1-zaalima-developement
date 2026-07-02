@@ -51,11 +51,17 @@ def train_models():
     )
     print(f"Train set size: {X_train.shape[0]}, Test set size: {X_test.shape[0]}")
     
+    # Calculate scale_pos_weight for XGBoost to handle class imbalance (negative class / positive class)
+    num_neg = sum(y_train == 0)
+    num_pos = sum(y_train == 1)
+    scale_pos_weight = num_neg / num_pos
+    print(f"XGBoost scale_pos_weight: {scale_pos_weight:.4f}")
+    
     # 6. Initialize models
     models = {
-        "Logistic Regression": LogisticRegression(max_iter=1000, random_state=42),
+        "Logistic Regression": LogisticRegression(max_iter=1000, random_state=42, class_weight="balanced"),
         "Random Forest": RandomForestClassifier(n_estimators=100, random_state=42, class_weight="balanced"),
-        "XGBoost": XGBClassifier(eval_metric="logloss", random_state=42, use_label_encoder=False)
+        "XGBoost": XGBClassifier(eval_metric="logloss", random_state=42, scale_pos_weight=scale_pos_weight, use_label_encoder=False)
     }
     
     # 7. Train and evaluate
