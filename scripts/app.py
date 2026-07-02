@@ -3,9 +3,9 @@ import pandas as pd
 import joblib
 
 # -----------------------------
-# Page Title
+# Title
 # -----------------------------
-st.title("📊 Customer Churn Prediction Dashboard")
+st.title("Customer Churn Prediction Dashboard")
 
 # -----------------------------
 # Load Model
@@ -17,7 +17,7 @@ def load_model():
 model = load_model()
 
 # -----------------------------
-# Sidebar - Data Source
+# Data Source Selection
 # -----------------------------
 st.sidebar.header("Data Source")
 
@@ -34,7 +34,7 @@ data = None
 if option == "Use default dataset":
     try:
         data = pd.read_csv("data/churn_predictions.csv")
-        st.success("Loaded default dataset successfully ✅")
+        st.success("Loaded default dataset successfully ")
     except Exception as e:
         st.error(f"Error loading default dataset: {e}")
 
@@ -42,30 +42,17 @@ else:
     uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
     if uploaded_file is not None:
         data = pd.read_csv(uploaded_file)
-        st.success("File uploaded successfully ✅")
+        st.success("File uploaded successfully ")
 
 # -----------------------------
 # Process Data
 # -----------------------------
 if data is not None:
 
-    st.subheader("📄 Data Preview")
+    st.subheader(" Data Preview")
     st.dataframe(data.head())
 
     try:
-        # -----------------------------
-        # FIX: Match model input columns
-        # -----------------------------
-        required_columns = model.feature_names_in_
-
-        # Add missing columns
-        for col in required_columns:
-            if col not in data.columns:
-                data[col] = 0
-
-        # Remove extra columns (optional but safe)
-        data = data[required_columns]
-
         # -----------------------------
         # Prediction
         # -----------------------------
@@ -73,13 +60,13 @@ if data is not None:
 
         data["Churn Prediction"] = predictions
 
-        st.subheader("📊 Predictions")
+        st.subheader("Predictions")
         st.dataframe(data)
 
         # -----------------------------
         # Download Results
         # -----------------------------
-        csv = data.to_csv(index=False).encode("utf-8")
+        csv = data.to_csv(index=False).encode('utf-8')
 
         st.download_button(
             label="📥 Download Predictions",
@@ -90,4 +77,4 @@ if data is not None:
 
     except Exception as e:
         st.error(f"Prediction error: {e}")
-        st.warning("⚠️ Make sure your dataset matches training structure.")
+        st.warning("Make sure your dataset has the SAME structure as training data.")
