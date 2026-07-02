@@ -69,7 +69,7 @@ if data is not None:
         csv = data.to_csv(index=False).encode('utf-8')
 
         st.download_button(
-            label="📥 Download Predictions",
+            label="Download Predictions",
             data=csv,
             file_name="churn_predictions_output.csv",
             mime="text/csv"
