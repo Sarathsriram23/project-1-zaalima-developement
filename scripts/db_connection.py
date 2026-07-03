@@ -2,6 +2,12 @@ import os
 import logging
 from sqlalchemy import create_engine
 from sqlalchemy.exc import OperationalError
+from dotenv import load_dotenv
+
+# Load database configuration from root .env file
+current_dir = os.path.dirname(os.path.abspath(__file__))
+dotenv_path = os.path.abspath(os.path.join(current_dir, "..", ".env"))
+load_dotenv(dotenv_path)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')

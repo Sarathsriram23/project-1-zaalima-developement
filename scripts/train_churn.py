@@ -4,7 +4,7 @@ import numpy as np
 import os
 import joblib
 
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.pipeline import Pipeline
@@ -64,44 +64,72 @@ def train_models():
         "XGBoost": XGBClassifier(eval_metric="logloss", random_state=42, scale_pos_weight=scale_pos_weight, use_label_encoder=False)
     }
     
-    # 7. Train and evaluate
+    # 7. Train, tune, and evaluate
     results = {}
     best_f1 = 0
     best_model_name = ""
     best_pipeline = None
     
+    # Define hyperparameter grid for tuning
+    param_grids = {
+        "Logistic Regression": {
+            "classifier__C": [0.01, 0.1, 1.0, 10.0]
+        },
+        "Random Forest": {
+            "classifier__n_estimators": [50, 100],
+            "classifier__max_depth": [5, 10, None]
+        },
+        "XGBoost": {
+            "classifier__max_depth": [3, 5, 7],
+            "classifier__learning_rate": [0.01, 0.1]
+        }
+    }
+    
     os.makedirs("models", exist_ok=True)
     
     for name, model in models.items():
-        print(f"\n================ Training {name} ================")
-        # Pipeline now contains FeatureEngineer() as step 1
+        print(f"\n================ Training and Tuning {name} ================")
+        # Pipeline contains FeatureEngineer() as step 1
         pipeline = Pipeline(steps=[
             ("feature_engineering", FeatureEngineer()),
             ("preprocessor", preprocessor),
             ("classifier", model)
         ])
         
-        # Fit pipeline (implicitly transforms X_train using FeatureEngineer, then preprocessor, then fits model)
-        pipeline.fit(X_train, y_train)
+        # Setup Grid Search
+        grid_search = GridSearchCV(
+            pipeline,
+            param_grid=param_grids[name],
+            cv=5,
+            scoring="f1",
+            n_jobs=-1
+        )
         
-        # Predict
-        y_pred = pipeline.predict(X_test)
-        y_prob = pipeline.predict_proba(X_test)[:, 1]
+        print(f"Running Grid Search for {name} using 5-fold cross-validation...")
+        grid_search.fit(X_train, y_train)
+        
+        # Get the best estimator
+        best_est = grid_search.best_estimator_
+        print(f"Best parameters for {name}: {grid_search.best_params_}")
+        
+        # Predict on test set using the best estimator
+        y_pred = best_est.predict(X_test)
+        y_prob = best_est.predict_proba(X_test)[:, 1]
         
         # Score
         metrics = evaluate(y_test, y_pred, y_prob)
         results[name] = metrics
         
-        # Save each model pipeline
+        # Save each model's best pipeline
         model_filename = f"models/{name.lower().replace(' ', '_')}.pkl"
-        joblib.dump(pipeline, model_filename)
-        print(f"Saved {name} model pipeline to {model_filename}")
+        joblib.dump(best_est, model_filename)
+        print(f"Saved optimized {name} model pipeline to {model_filename}")
         
-        # Track the best model based on F1 Score
+        # Track the overall best model based on test F1 Score
         if metrics["F1 Score"] > best_f1:
             best_f1 = metrics["F1 Score"]
             best_model_name = name
-            best_pipeline = pipeline
+            best_pipeline = best_est
             
     # 8. Print comparison summary
     print("\n================ Model Comparison Summary ================")
