@@ -142,3 +142,12 @@ plt.title('Churn Rate by Partner Status')
 plt.xlabel('Partner')
 plt.ylabel('Churn Rate')
 plt.show()
+
+#dependents vs churn
+plt.figure(figsize=(5,4))     
+sns.barplot(x='Dependents', y='Churn', data=df, estimator=lambda x: sum(x)/len(x))
+plt.title('Churn Rate by Dependents Status')
+plt.xlabel('Dependents')
+plt.ylabel('Churn Rate')
+plt.show()
+
