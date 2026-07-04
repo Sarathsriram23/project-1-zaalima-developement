@@ -39,3 +39,5 @@ from sklearn.linear_model import Ridge, ElasticNet
 from sklearn.inspection import permutation_importance
 
 import joblib
+
+np.random.seed(42)
