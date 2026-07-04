@@ -167,3 +167,87 @@ plt.xlabel('Tenure')
 plt.ylabel('customers')
 plt.show()
 
+#monthly charges vs churn
+plt.figure(figsize=(6,4))
+sns.histplot(df[df['Churn']==1]['MonthlyCharges'], bins=30, kde=True)
+plt.title('Distribution of Monthly Charges for Churned Customers')
+plt.xlabel('Monthly Charges')
+plt.ylabel('count')
+plt.show()
+
+#tenure vs churn
+plt.figure(figsize=(6,4))
+sns.boxenplot(x='Churn', y='tenure', data=df)
+plt.title('Tenure Distribution by Churn Status')
+plt.xlabel('Churn')
+plt.ylabel('Tenure')
+plt.show()
+
+#correlation heatmap
+plt.figure(figsize=(10,8))
+corr = df.corr()
+sns.heatmap(corr, annot=True, cmap='coolwarm', center=0)
+plt.title('Correlation Heatmap')
+plt.show()
+
+#revenue by contract type
+plt.figure(figsize=(6,4))
+revenue_by_contract = df.groupby('Contract')['Revenue'].mean().reset_index()
+sns.barplot(x='Contract', y='Revenue', data=revenue_by_contract)  
+plt.title('Average Revenue by Contract Type')   
+plt.xlabel('Contract Type')
+plt.ylabel('Average Revenue')       
+
+
+#churn percentage by contract type
+plt.figure(figsize=(6,4))           
+plt.pie(churn_percentage, labels=churn_percentage.index, autopct='%1.1f%%', startangle=90)
+plt.title('Churn Percentage by Contract Type')
+plt.show()
+
+print("business insights completed successfully")
+print("month-to-month customers have the highest churn rate, while two-year contract customers have the lowest churn rate")
+print("customer with longer tenure are less likely to churn, while customers with shorter tenure are more likely to churn")
+print("higher monthly charges are associated with higher churn rates, while lower monthly charges are associated with lower churn rates")
+print("electronic check users have the highest churn rate, while fiber optic users have the lowest churn rate")
+print("long term contracts improve customer retention, while month-to-month contracts increase churn risk")
+
+EstimatedLTV= MonthlyCharges * tenure
+df['EstimatedLTV'] = df['MonthlyCharges'] * df['tenure']
+print(df[['MonthlyCharges', 'tenure', 'EstimatedLTV']].head())
+
+contract_ltv = df.groupby('Contract')['EstimatedLTV'].mean()
+print(contract_ltv)
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+plt.figure(figsize=(6,4))
+sns.barplot(x="Contract", y="EstimatedLTV", data=df, estimator=lambda x: x.mean())
+plt.title('Average Estimated LTV by Contract Type')
+plt.xlabel('Contract Type')
+plt.ylabel('Average Estimated LTV')
+plt.show()
+
+
+internet_ltv = df.groupby('InternetService')['EstimatedLTV'].mean()
+print(internet_ltv)
+
+plt.figure(figsize=(6,4))
+sns.barplot(x="InternetService", y="EstimatedLTV", data=df, estimator=lambda x: x.mean())
+plt.title('Average Estimated LTV by Internet Service Type')
+plt.show()
+
+payment_ltv = df.groupby('PaymentMethod')['EstimatedLTV'].mean()
+print(payment_ltv)
+
+
+top_customers = df.nlargest(10, 'EstimatedLTV')
+print(top_customers[['customer_id', 'EstimatedLTV']])
+
+df.to_csv('cleaned_telco_with_ltv.csv', index=False)
+
+
+                    
+
+
+
