@@ -151,3 +151,19 @@ plt.xlabel('Dependents')
 plt.ylabel('Churn Rate')
 plt.show()
 
+#MONTHLY CHARGES VS CHURN
+plt.figure(figsize=(6,4))   
+sns.histplot(df[df['Churn']==1]['MonthlyCharges'], bins=30, kde=True)
+plt.title('Distribution of Monthly Charges for Churned Customers')
+plt.xlabel('Monthly Charges')
+plt.ylabel('count')
+plt.show()
+ 
+ #tenure distribution
+plt.figure(figsize=(6,4))
+sns.histplot(df[df['tenure']<=12]['tenure'], bins=30, kde=True)
+plt.title('customer tenure distribution')
+plt.xlabel('Tenure')    
+plt.ylabel('customers')
+plt.show()
+
