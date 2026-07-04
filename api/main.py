@@ -14,7 +14,7 @@ def home():
 @app.post("/predict")
 def predict(data: dict):
     try:
-        df = pd.DataFrame([data])   # FIX: wrap in list
+        df = pd.DataFrame([data]) # FIX: wrap in list
 
         prediction = model.predict(df)
 
