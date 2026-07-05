@@ -1,8 +1,8 @@
-<<<<<<< HEAD
+
 #Import Metrics
-=======
+
 # Import Metrics
->>>>>>> 8cfaf524b409ceba89eedf99ff41032df670dd66
+
 from sklearn.metrics import (
     accuracy_score,
     precision_score,
@@ -10,11 +10,11 @@ from sklearn.metrics import (
     f1_score,
     roc_auc_score
 )
-<<<<<<< HEAD
+
 #Evaluation Function
-=======
+
 # Evaluation Function
->>>>>>> 8cfaf524b409ceba89eedf99ff41032df670dd66
+
 def evaluate(y_true, y_pred, y_prob):
     print("Accuracy:",
           accuracy_score(y_true,y_pred))
@@ -31,8 +31,7 @@ def evaluate(y_true, y_pred, y_prob):
     print("ROC AUC:",
           roc_auc_score(y_true,y_prob))
 
-<<<<<<< HEAD
-=======
+
           
 
 import matplotlib.pyplot as plt
@@ -212,8 +211,7 @@ print("higher monthly charges are associated with higher churn rates, while lowe
 print("electronic check users have the highest churn rate, while fiber optic users have the lowest churn rate")
 print("long term contracts improve customer retention, while month-to-month contracts increase churn risk")
 
-EstimatedLTV= MonthlyCharges * tenure
-df['EstimatedLTV'] = df['MonthlyCharges'] * df['tenure']
+df['EstimatedLTV']= df['MonthlyCharges'] * df['tenure']
 print(df[['MonthlyCharges', 'tenure', 'EstimatedLTV']].head())
 
 contract_ltv = df.groupby('Contract')['EstimatedLTV'].mean()
