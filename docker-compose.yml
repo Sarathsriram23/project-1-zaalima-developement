@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: churn_db_container
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-customer_churn_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Mount the schema scripts so they execute on database startup initialization
+      - ./sql/create_tables.sql:/docker-entrypoint-initdb.d/1_create_tables.sql
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: churn_web_app
+    restart: always
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=db  # override localhost to point to the docker container db service
+    depends_on:
+      - db
+
+  metabase:
+    image: metabase/metabase:latest
+    container_name: churn_metabase_bi
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+
+volumes:
+  pgdata:
