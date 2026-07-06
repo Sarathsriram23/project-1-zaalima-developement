@@ -9,8 +9,10 @@ import os
 import sys
 from contextlib import asynccontextmanager
 
-# Add scripts directory to path for unpickling Custom Transformers
+# Add scripts and api directories to path for unpickling and imports
 current_dir = os.path.dirname(os.path.abspath(__file__))
+if current_dir not in sys.path:
+    sys.path.append(current_dir)
 scripts_path = os.path.abspath(os.path.join(current_dir, "..", "scripts"))
 if scripts_path not in sys.path:
     sys.path.append(scripts_path)
