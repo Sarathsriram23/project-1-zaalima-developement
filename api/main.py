@@ -125,7 +125,7 @@ def predict_customer(customer_id: str, db: Session = Depends(get_db)):
     Queries a customer record by ID from the database, feeds their features into the ML models,
     and returns both Churn and LTV predictions.
     """
-    query = text("SELECT * FROM telco_customers WHERE customerID = :cid")
+    query = text("SELECT * FROM telco_customers WHERE customerid = :cid")
     try:
         result = db.execute(query, {"cid": customer_id}).fetchone()
     except Exception as e:
@@ -141,7 +141,35 @@ def predict_customer(customer_id: str, db: Session = Depends(get_db)):
         # Fallback for older SQLAlchemy versions
         row_dict = dict(zip(result.keys(), result))
         
-    df_input = pd.DataFrame([row_dict])
+    # Remap lowercase database columns back to camelCase/expected model casing
+    db_to_model_casing = {
+        "gender": "gender",
+        "seniorcitizen": "SeniorCitizen",
+        "partner": "Partner",
+        "dependents": "Dependents",
+        "tenure": "tenure",
+        "phoneservice": "PhoneService",
+        "multiplelines": "MultipleLines",
+        "internetservice": "InternetService",
+        "onlinesecurity": "OnlineSecurity",
+        "onlinebackup": "OnlineBackup",
+        "deviceprotection": "DeviceProtection",
+        "techsupport": "TechSupport",
+        "streamingtv": "StreamingTV",
+        "streamingmovies": "StreamingMovies",
+        "contract": "Contract",
+        "paperlessbilling": "PaperlessBilling",
+        "paymentmethod": "PaymentMethod",
+        "monthlycharges": "MonthlyCharges",
+        "totalcharges": "TotalCharges"
+    }
+    
+    model_dict = {}
+    for k, v in row_dict.items():
+        mapped_key = db_to_model_casing.get(k.lower(), k)
+        model_dict[mapped_key] = v
+        
+    df_input = pd.DataFrame([model_dict])
     
     try:
         churn_pred, churn_prob, ltv_pred = preprocess_and_predict(df_input)

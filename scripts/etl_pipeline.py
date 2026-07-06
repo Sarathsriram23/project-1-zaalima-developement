@@ -19,7 +19,9 @@ def run_etl():
     # 2. Load Raw into Database
     engine = get_engine()
     logger.info("Loading raw data into 'telco_customers' table...")
-    df.to_sql("telco_customers", engine, if_exists="replace", index=False)
+    df_raw = df.copy()
+    df_raw.columns = [c.lower() for c in df_raw.columns]
+    df_raw.to_sql("telco_customers", engine, if_exists="replace", index=False)
     logger.info("Raw table loaded successfully.")
     
     # 3. Transform (Data Cleaning & Preprocessing)
@@ -48,18 +50,19 @@ def run_etl():
         
     logger.info("Transformation complete. Preprocessed shape: {}".format(cleaned_df.shape))
     
-    # 4. Load Cleaned Data
-    logger.info("Loading cleaned data into 'cleaned_telco_customers' table...")
-    cleaned_df.to_sql("cleaned_telco_customers", engine, if_exists="replace", index=False)
-    logger.info("Cleaned database table loaded.")
-    
+    # Save to CSV for subsequent modeling steps (maintaining original casing)
     # Ensure data folder exists
     os.makedirs("data", exist_ok=True)
-    
-    # Save to CSV for subsequent modeling steps
     cleaned_csv_path = "data/cleaned_telco.csv"
     cleaned_df.to_csv(cleaned_csv_path, index=False)
     logger.info(f"Cleaned dataset saved locally at {cleaned_csv_path}")
+
+    # 4. Load Cleaned Data into Database (lowercased)
+    logger.info("Loading cleaned data into 'cleaned_telco_customers' table...")
+    cleaned_db_df = cleaned_df.copy()
+    cleaned_db_df.columns = [c.lower() for c in cleaned_db_df.columns]
+    cleaned_db_df.to_sql("cleaned_telco_customers", engine, if_exists="replace", index=False)
+    logger.info("Cleaned database table loaded.")
 
 if __name__ == "__main__":
     run_etl()
