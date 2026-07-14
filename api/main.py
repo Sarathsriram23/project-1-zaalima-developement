@@ -42,7 +42,7 @@ def predict(data: CustomerData):
     try:
         df = pd.DataFrame([data.dict()])
 
-        # ✅ Create missing feature
+        # Create missing feature
         df["AvgChargePerMonth"] = df["TotalCharges"] / df["tenure"]
 
         # Optional safety (avoid division by zero)
