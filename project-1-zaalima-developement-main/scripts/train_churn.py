@@ -158,5 +158,5 @@ def train_models():
     print(f"Predictions saved to {predictions_path}. Shape: {predictions_df.shape}")
     
 if __name__ == "__main__":
-    train_models()
+    train_models() train_models()
     
